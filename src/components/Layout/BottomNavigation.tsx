@@ -4,10 +4,19 @@ import { useCart } from '@/contexts/CartContext';
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'browse' | 'cart' | 'profile';
-  onTabChange: (tab: 'home' | 'browse' | 'cart' | 'profile') => void;
+  onTabChange?: (tab: 'home' | 'browse' | 'cart' | 'profile') => void;
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
+  const navigate = (tab: string) => {
+    if (onTabChange) {
+      onTabChange(tab as any);
+    } else {
+      // Navigate using window.location for page routing
+      const routes = { browse: '/', home: '/home', cart: '/cart', profile: '/profile' };
+      window.location.href = routes[tab as keyof typeof routes];
+    }
+  };
   const { getCartItemCount } = useCart();
   const cartItemCount = getCartItemCount();
 
