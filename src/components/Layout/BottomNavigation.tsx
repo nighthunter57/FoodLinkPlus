@@ -33,7 +33,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
         {tabs.map(({ id, label, icon: Icon, badge }) => (
           <button
             key={id}
-            onClick={() => onTabChange(id)}
+            onClick={() => navigate(id)}
             className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors relative ${
               activeTab === id
                 ? 'text-primary'
