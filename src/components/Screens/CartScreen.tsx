@@ -1,39 +1,30 @@
 import React from 'react';
-import { Minus, Plus, Trash2, Clock, MapPin } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCart } from '@/contexts/CartContext';
-import { mockRestaurants } from '@/data/mockData';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useApp } from '@/contexts/AppContext';
 
-const CartScreen: React.FC = () => {
-  const { items, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+const CartScreen = () => {
+  const { cart, updateQuantity, removeFromCart, clearCart, user } = useApp();
 
-  const cartWithDetails = items.map(item => {
-    const restaurant = mockRestaurants.find(r => 
-      r.surpriseBags.some(bag => bag.id === item.bagId)
-    );
-    const bag = restaurant?.surpriseBags.find(bag => bag.id === item.bagId);
-    return { ...item, restaurant, bag };
-  }).filter(item => item.restaurant && item.bag);
+  const subtotal = cart.reduce((sum, item) => sum + (item.menuItem.discountedPrice * item.quantity), 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal + tax;
 
-  const total = cartWithDetails.reduce((sum, item) => 
-    sum + (item.bag!.discountedPrice * item.quantity), 0
-  );
-
-  if (items.length === 0) {
+  if (cart.length === 0) {
     return (
       <div className="flex flex-col h-full bg-background">
         <div className="p-4 bg-card border-b border-border">
-          <h1 className="text-xl font-semibold text-foreground">Shopping Cart</h1>
+          <h1 className="text-xl font-bold text-foreground">Cart</h1>
         </div>
         
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-muted-foreground" />
-            </div>
+            <ShoppingBag size={64} className="mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-lg font-semibold text-foreground mb-2">Your cart is empty</h2>
-            <p className="text-muted-foreground">Add some surprise bags to get started!</p>
+            <p className="text-muted-foreground mb-4">Reserve a meal from Browse to get started</p>
+            <Button>Browse Meals</Button>
           </div>
         </div>
       </div>
@@ -43,44 +34,50 @@ const CartScreen: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="p-4 bg-card border-b border-border">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-foreground">Shopping Cart</h1>
-          <Button variant="ghost" size="sm" onClick={clearCart}>
-            Clear All
-          </Button>
-        </div>
+      <div className="p-4 bg-card border-b border-border flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">Cart</h1>
+        <Button variant="ghost" size="sm" onClick={clearCart}>
+          <Trash2 size={16} className="mr-1" />
+          Clear
+        </Button>
       </div>
-      
+
       {/* Cart Items */}
-      <div className="flex-1 overflow-y-auto p-4 pb-32">
-        <div className="space-y-4">
-          {cartWithDetails.map(item => (
-            <Card key={item.bagId}>
-              <CardContent className="p-4">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-3">
+          {cart.map((item) => (
+            <Card key={item.menuItem.id}>
+              <CardContent className="p-3">
                 <div className="flex gap-3">
                   <img
-                    src={item.restaurant!.image}
-                    alt={item.restaurant!.name}
-                    className="w-20 h-20 object-cover rounded-lg"
+                    src={item.menuItem.image}
+                    alt={item.menuItem.name}
+                    className="w-16 h-16 rounded-lg object-cover"
                   />
-                  
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{item.restaurant!.name}</h3>
-                    <p className="text-sm text-muted-foreground">{item.bag!.title}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">{item.menuItem.name}</h3>
+                    <p className="text-sm text-muted-foreground">{item.restaurant.name}</p>
                     
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <Clock size={12} />
-                      <span>{item.bag!.pickupStart} - {item.bag!.pickupEnd}</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      {item.menuItem.dietary.map((diet) => (
+                        <Badge key={diet} variant="outline" className="text-xs">
+                          {diet}
+                        </Badge>
+                      ))}
+                      {item.menuItem.timeLeft && (
+                        <Badge variant="secondary" className="text-xs bg-warning text-warning-foreground">
+                          {item.menuItem.timeLeft} left
+                        </Badge>
+                      )}
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-primary">
-                          ${item.bag!.discountedPrice.toFixed(2)}
+                          ${item.menuItem.discountedPrice}
                         </span>
                         <span className="text-sm text-muted-foreground line-through">
-                          ${item.bag!.originalPrice.toFixed(2)}
+                          ${item.menuItem.originalPrice}
                         </span>
                       </div>
                       
@@ -88,22 +85,25 @@ const CartScreen: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.bagId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
+                          className="h-8 w-8 p-0"
                         >
                           <Minus size={14} />
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center font-medium">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.bagId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                          className="h-8 w-8 p-0"
                         >
                           <Plus size={14} />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeFromCart(item.bagId)}
+                          onClick={() => removeFromCart(item.menuItem.id)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         >
                           <Trash2 size={14} />
                         </Button>
@@ -116,26 +116,43 @@ const CartScreen: React.FC = () => {
           ))}
         </div>
       </div>
-      
-      {/* Checkout Footer */}
-      <div className="fixed bottom-16 left-0 right-0 bg-card border-t border-border p-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-lg font-semibold text-foreground">Total</span>
-            <span className="text-lg font-bold text-primary">${total.toFixed(2)}</span>
+
+      {/* Checkout Summary */}
+      <div className="border-t border-border bg-card p-4">
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between text-sm">
+            <span>Subtotal</span>
+            <span>${subtotal.toFixed(2)}</span>
           </div>
-          
-          <div className="mb-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin size={14} />
-              <span>Pickup locations in Southampton, Houston</span>
-            </div>
+          <div className="flex justify-between text-sm">
+            <span>Tax</span>
+            <span>${tax.toFixed(2)}</span>
           </div>
-          
-          <Button className="w-full bg-primary hover:bg-primary-hover text-primary-foreground">
-            Proceed to Checkout
-          </Button>
+          <div className="flex justify-between font-semibold text-lg">
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
         </div>
+
+        <div className="text-xs text-muted-foreground mb-3">
+          <p>📍 Pickup locations vary by restaurant</p>
+        </div>
+
+        <Button 
+          className="w-full bg-accent hover:bg-accent/90" 
+          size="lg"
+          onClick={() => {
+            if (!user) {
+              // Show auth modal
+              console.log('Show auth modal');
+            } else {
+              // Proceed to checkout
+              console.log('Proceed to checkout');
+            }
+          }}
+        >
+          {!user ? 'Sign In to Continue' : 'Proceed to Checkout'}
+        </Button>
       </div>
     </div>
   );

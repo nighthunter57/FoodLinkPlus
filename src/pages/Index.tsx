@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AppProvider } from '@/contexts/AppContext';
 import BottomNavigation from '@/components/Layout/BottomNavigation';
 import HomeScreen from '@/components/Screens/HomeScreen';
 import BrowseScreen from '@/components/Screens/BrowseScreen';
@@ -24,12 +25,14 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background max-w-md mx-auto">
-      <div className="flex-1 overflow-hidden">
-        {renderScreen()}
+    <AppProvider>
+      <div className="flex flex-col h-screen bg-background max-w-md mx-auto border-x border-border">
+        <div className="flex-1 overflow-hidden">
+          {renderScreen()}
+        </div>
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-    </div>
+    </AppProvider>
   );
 };
 

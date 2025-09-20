@@ -1,6 +1,6 @@
 import React from 'react';
 import { Home, Search, ShoppingCart, User } from 'lucide-react';
-import { useCart } from '@/contexts/CartContext';
+import { useApp } from '@/contexts/AppContext';
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'browse' | 'cart' | 'profile';
@@ -8,8 +8,8 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
-  const { getCartItemCount } = useCart();
-  const cartItemCount = getCartItemCount();
+  const { cart } = useApp();
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home, badge: undefined },
@@ -19,7 +19,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
+    <nav className="bg-card border-t border-border">
       <div className="flex items-center justify-around h-16 max-w-md mx-auto">
         {tabs.map(({ id, label, icon: Icon, badge }) => (
           <button
@@ -34,7 +34,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
             <div className="relative">
               <Icon size={20} />
               {badge && (
-                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {badge}
                 </span>
               )}
