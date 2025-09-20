@@ -22,8 +22,7 @@ const FoodCard: React.FC<FoodCardProps> = ({
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    // Simple demo cart addition - just add first item with qty 1
-    addToCart(bag.id, [{ itemId: bag.id, qty: 1 }]);
+    addToCart(bag.id);
   };
 
   return (
