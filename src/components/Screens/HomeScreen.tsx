@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
-import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { useToast } from '@/hooks/use-toast';
 
 const HomeScreen = ({ onNavigateToBrowse, onNavigateToCreateListing }: { onNavigateToBrowse?: (filters: any) => void; onNavigateToCreateListing?: () => void }) => {
@@ -220,12 +219,21 @@ const HomeScreen = ({ onNavigateToBrowse, onNavigateToCreateListing }: { onNavig
                         <div className="flex items-start justify-between mb-1">
                           <h3 className="font-medium text-sm text-foreground truncate">{item.name}</h3>
                           <Badge variant="secondary" className="text-xs bg-accent text-accent-foreground">
-                            {item.discountPercentage}% off
+                            {item.dynamicPricing ? Math.round(((item.originalPrice - item.dynamicPricing.currentPrice) / item.originalPrice) * 100) : item.discountPercentage}% off
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-1">{restaurant?.name}</p>
                         <div className="flex items-center justify-between">
-                          <DynamicPriceDisplay item={item} size="sm" />
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-primary text-sm">
+                              ${item.dynamicPricing ? item.dynamicPricing.currentPrice.toFixed(2) : item.discountedPrice.toFixed(2)}
+                            </span>
+                            {item.originalPrice > (item.dynamicPricing ? item.dynamicPricing.currentPrice : item.discountedPrice) && (
+                              <span className="text-xs text-muted-foreground line-through">
+                                ${item.originalPrice.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center text-xs text-warning">
                             <Clock size={12} className="mr-1" />
                             {item.timeLeft}

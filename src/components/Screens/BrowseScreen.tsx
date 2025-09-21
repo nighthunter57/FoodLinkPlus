@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Grid, Map, Star, Clock, Camera } from 'lucide-react';
+import { Search, Filter, MapPin, Grid, Map, Star, Clock, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,7 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMapView, setIsMapView] = useState(false);
   const [activeTab, setActiveTab] = useState<'restaurants' | 'listings'>('restaurants');
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     cuisine: '',
     dietary: initialFilters?.dietary || '',
@@ -189,6 +190,28 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
 
   const dealItems = filteredItems.filter(item => item.discountPercentage > 25);
 
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      cuisine: '',
+      dietary: '',
+      priceRange: '',
+      distance: '',
+      deals: false,
+      mealType: '',
+      peopleCount: ''
+    });
+  };
+
+  const getActiveFiltersCount = () => {
+    return Object.values(filters).filter(value => 
+      value !== '' && value !== false
+    ).length;
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
@@ -228,54 +251,232 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
 
         {/* Quick Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+          >
             <Filter size={14} className="mr-1" />
             Filters
+            {getActiveFiltersCount() > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {getActiveFiltersCount()}
+              </Badge>
+            )}
           </Button>
           {activeTab === 'restaurants' ? (
             <>
               {filters.cuisine && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('cuisine', '')}
+                >
                   {filters.cuisine}
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
               {filters.distance && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('distance', '')}
+                >
                   {filters.distance}
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
               {filters.deals && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('deals', false)}
+                >
                   Deals
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
             </>
           ) : (
             <>
               {filters.dietary && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('dietary', '')}
+                >
                   {filters.dietary}
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
               {filters.priceRange && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('priceRange', '')}
+                >
                   {filters.priceRange}
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
               {filters.mealType && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('mealType', '')}
+                >
                   {filters.mealType}
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
               {filters.deals && (
-                <Button variant="default" size="sm" className="bg-accent">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-accent"
+                  onClick={() => handleFilterChange('deals', false)}
+                >
                   Deals
+                  <X size={12} className="ml-1" />
                 </Button>
               )}
             </>
           )}
         </div>
       </div>
+
+      {/* Filter Modal */}
+      {showFilters && (
+        <div className="bg-card border-b border-border p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-foreground">Filters</h3>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear All
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(false)}>
+                <X size={16} />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {activeTab === 'restaurants' ? (
+              <>
+                {/* Cuisine Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Cuisine</label>
+                  <select 
+                    value={filters.cuisine} 
+                    onChange={(e) => handleFilterChange('cuisine', e.target.value)}
+                    className="w-full p-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="">All Cuisines</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                    <option value="American">American</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Organic">Organic</option>
+                    <option value="Italian">Italian</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Mexican">Mexican</option>
+                  </select>
+                </div>
+
+                {/* Distance Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Distance</label>
+                  <select 
+                    value={filters.distance} 
+                    onChange={(e) => handleFilterChange('distance', e.target.value)}
+                    className="w-full p-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="">Any Distance</option>
+                    <option value="Under 1 mi">Under 1 mi</option>
+                    <option value="1-2 mi">1-2 mi</option>
+                    <option value="2-5 mi">2-5 mi</option>
+                    <option value="5+ mi">5+ mi</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Dietary Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Dietary</label>
+                  <select 
+                    value={filters.dietary} 
+                    onChange={(e) => handleFilterChange('dietary', e.target.value)}
+                    className="w-full p-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="">All Dietary</option>
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="gluten-free">Gluten-Free</option>
+                    <option value="keto">Keto</option>
+                    <option value="paleo">Paleo</option>
+                  </select>
+                </div>
+
+                {/* Price Range Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Price Range</label>
+                  <select 
+                    value={filters.priceRange} 
+                    onChange={(e) => handleFilterChange('priceRange', e.target.value)}
+                    className="w-full p-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="">Any Price</option>
+                    <option value="Under $15">Under $15</option>
+                    <option value="$15-25">$15-25</option>
+                    <option value="$25-40">$25-40</option>
+                    <option value="$40+">$40+</option>
+                  </select>
+                </div>
+
+                {/* Meal Type Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Meal Type</label>
+                  <select 
+                    value={filters.mealType} 
+                    onChange={(e) => handleFilterChange('mealType', e.target.value)}
+                    className="w-full p-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="">All Types</option>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                    <option value="dessert">Dessert</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Deals Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Deals Only</label>
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="deals" 
+                  checked={filters.deals} 
+                  onChange={(e) => handleFilterChange('deals', e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <label htmlFor="deals" className="text-sm text-foreground">
+                  Show only items with deals
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">

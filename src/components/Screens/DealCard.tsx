@@ -2,7 +2,6 @@ import React from 'react';
 import { Clock, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { MenuItem, Restaurant } from '@/types';
 
 interface DealCardProps {
@@ -21,7 +20,7 @@ export const DealCard: React.FC<DealCardProps> = ({ item, restaurant }) => {
           <div className="w-2/3 p-3">
             <div className="flex justify-between items-start">
               <h4 className="font-semibold text-sm mb-1">{item.name}</h4>
-              <Badge variant="destructive">-{item.discountPercentage}%</Badge>
+              <Badge variant="destructive">-{item.dynamicPricing ? Math.round(((item.originalPrice - item.dynamicPricing.currentPrice) / item.originalPrice) * 100) : item.discountPercentage}%</Badge>
             </div>
             <p className="text-xs text-muted-foreground mb-2">{restaurant?.name}</p>
             <div className="flex items-center text-xs text-muted-foreground mb-2">
@@ -31,7 +30,16 @@ export const DealCard: React.FC<DealCardProps> = ({ item, restaurant }) => {
               <span>{restaurant?.rating}</span>
             </div>
             <div className="flex justify-between items-center">
-              <DynamicPriceDisplay item={item} />
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-primary text-sm">
+                  ${item.dynamicPricing ? item.dynamicPricing.currentPrice.toFixed(2) : item.discountedPrice.toFixed(2)}
+                </span>
+                {item.originalPrice > (item.dynamicPricing ? item.dynamicPricing.currentPrice : item.discountedPrice) && (
+                  <span className="text-xs text-muted-foreground line-through">
+                    ${item.originalPrice.toFixed(2)}
+                  </span>
+                )}
+              </div>
               {/* Add to cart button can be added here if needed */}
             </div>
           </div>
