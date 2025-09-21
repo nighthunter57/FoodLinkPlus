@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb+srv://demo123:Wizardmaster682@cluster0.lzn2q44.mongodb.net/foodWasteDB?retryWrites=true&w=majority&appName=Cluster0"
+}
+
+type NewrestaurantsListings {
+  discountedPrice Int
+  originalPrice   Int
+  quantity        Int
+  title           String
+}
+
+model Newrestaurants {
+  id             String                   @id @default(auto()) @map("_id") @db.ObjectId
+  averageRating  String
+  description    String
+  displayAddress String
+  /// Multiple data types found: String: 86.8%, Float: 13.2% out of 1000 sampled entries
+  imageUrl       Json
+  latitude       String
+  listings       NewrestaurantsListings[]
+  longitude      String
+  name           String
+  passwordHash   String
+  /// Multiple data types found: String: 98.1%, Float: 1.9% out of 1000 sampled entries
+  priceRange     Json
+  ratingCount    String
+  username       String
+
+  @@map("Newrestaurants") 
+}

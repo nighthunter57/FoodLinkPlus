@@ -1,4 +1,5 @@
 export interface Restaurant {
+  listings: any;
   id: string;
   name: string;
   image: string;

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+// import axios from "axios";
 import { MapPin, MessageCircle, Sparkles, Clock, Star, ShoppingBag, Plus, Minus, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,11 +8,31 @@ import { useApp } from '@/contexts/AppContext';
 import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { useToast } from '@/hooks/use-toast';
 
+interface Restaurant {
+  id: string;
+  name: string;
+  imageUrl: string[];
+  listings: {
+    title: string;
+    discountedPrice: number;
+    originalPrice: number;
+    quantity: number;
+    dynamicPricing?: {
+      currentPrice: number;
+      // add other fields if needed
+    };
+  }[];
+  // add other fields if needed
+}
+
 const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any) => void }) => {
-  const { user, cart, menuItems, restaurants, addToCart, updateQuantity, removeFromCart, transactionHistory } = useApp();
+  const { user, cart, addToCart, updateQuantity, removeFromCart, transactionHistory } = useApp();
   const [chatMessages, setChatMessages] = useState<string[]>([]);
+  const [menuItems, setMenuItems] = useState<any[]>([]); 
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userPreferences, setUserPreferences] = useState({
     peopleCount: '',
     dietary: '',
@@ -19,6 +40,40 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
     mealType: ''
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+  const fetchRestaurants = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/restaurants');
+      const data = await res.json();
+      setRestaurants(data);
+
+      // Flatten all listings from all restaurants into a menuItems array
+      const allItems = data.flatMap((restaurant: Restaurant) =>
+        restaurant.listings.map(item => ({
+          ...item,
+          restaurantId: restaurant.id,
+          restaurantName: restaurant.name,
+          discountedPrice: Number(item.discountedPrice), // ensure it's a number
+          discountPercentage: Math.round(
+            ((Number(item.originalPrice) - Number(item.discountedPrice)) / Number(item.originalPrice)) * 100
+          ),
+          image: restaurant.imageUrl, // add image if you want to display it
+        }))
+      );
+      setMenuItems(allItems);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRestaurants();
+}, []);
+
+  if (loading) return <div>Loading restaurants...</div>;
+
 
   const questions = [
     { text: "How many people are you feeding today?", options: ["1", "2", "3", "4+"] },
@@ -88,6 +143,8 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.menuItem.dynamicPricing.currentPrice * item.quantity), 0);
+
+
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -194,38 +251,35 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
           </div>
           
           <div className="space-y-3">
-            {goodDeals.map((item) => {
-              const restaurant = restaurants.find(r => r.id === item.restaurantId);
-              return (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardContent className="p-3">
-                    <div className="flex gap-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-1">
-                          <h3 className="font-medium text-sm text-foreground truncate">{item.name}</h3>
-                          <Badge variant="secondary" className="text-xs bg-accent text-accent-foreground">
-                            {item.discountPercentage}% off
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">{restaurant?.name}</p>
-                        <div className="flex items-center justify-between">
-                          <DynamicPriceDisplay item={item} size="sm" />
-                          <div className="flex items-center text-xs text-warning">
-                            <Clock size={12} className="mr-1" />
-                            {item.timeLeft}
-                          </div>
+            {goodDeals.map(item => (
+              <Card key={item.title + item.restaurantId} className="overflow-hidden">
+                <CardContent className="p-3">
+                  <div className="flex gap-3">
+                    <img
+                      src={item.image || '/default-image.jpg'}
+                      alt={item.title}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-medium text-sm text-foreground truncate">{item.title}</h3>
+                        <Badge variant="secondary" className="text-xs bg-accent text-accent-foreground">
+                          {item.discountPercentage}% off
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-1">{item.restaurantName}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium">${item.discountedPrice.toFixed(2)}</div>
+                        <div className="flex items-center text-xs text-warning">
+                          <Clock size={12} className="mr-1" />
+                          {item.timeLeft || '1h left'}
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 

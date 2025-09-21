@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, Grid, Map, Star, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,10 @@ import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { MenuItem, Restaurant } from '@/types';
 
 const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
-  const { addToCart, menuItems, restaurants } = useApp();
+  const { addToCart, setMenuItems , restaurants } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
+  const [listings, setListings] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isMapView, setIsMapView] = useState(false);
   const [filters, setFilters] = useState({
     cuisine: '',
@@ -22,7 +24,38 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
     peopleCount: initialFilters?.peopleCount || ''
   });
 
-  const filteredItems = menuItems.filter(item => {
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/restaurants');
+        const restaurants = await res.json();
+
+        // Flatten listings and add restaurant info
+        const allItems: MenuItem[] = restaurants.flatMap((r: any) =>
+          r.listings.map((listing: any) => ({
+            ...listing,
+            restaurantId: r.id,
+            restaurantName: r.name,
+          }))
+        );
+
+        // Take first 50 items
+        const first50 = allItems.slice(0, 50);
+        setListings(first50);
+        setMenuItems(first50); // if your app context needs it
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+  if (loading) return <div>Loading listings...</div>;
+
+  const filteredItems = listings.filter(item => {
     const restaurant = restaurants.find(r => r.id === item.restaurantId);
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          restaurant?.name.toLowerCase().includes(searchQuery.toLowerCase());

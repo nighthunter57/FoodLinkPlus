@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { CartItem, User, MenuItem, Restaurant } from '@/types';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
-import { mockMenuItems, mockRestaurants } from '@/data/mockDataWithDynamicPricing';
 import { TransactionService, Transaction } from '@/services/transactionService';
 
 interface AppContextType {
@@ -9,6 +8,8 @@ interface AppContextType {
   cart: CartItem[];
   menuItems: MenuItem[];
   restaurants: Restaurant[];
+  setRestaurants: React.Dispatch<React.SetStateAction<Restaurant[]>>;
+  setMenuItems: React.Dispatch<React.SetStateAction<MenuItem[]>>;
   addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -19,6 +20,7 @@ interface AppContextType {
   lastPriceUpdate: Date | null;
   processCheckout: () => Promise<Transaction>;
   transactionHistory: Transaction[];
+  
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -34,15 +36,25 @@ export const useApp = () => {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
   const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
+
+  const menuItemsFromRestaurants: MenuItem[] = restaurants.flatMap(r => 
+  r.listings.map(listing => ({
+    ...listing,
+    restaurantId: r.id,
+    restaurantName: r.name,
+    // any other fields your MenuItem type expects
+  }))
+);
   
   // Initialize dynamic pricing
   const {
-    dynamicMenuItems,
     lastUpdated,
     refreshPrices
-  } = useDynamicPricing(mockMenuItems, mockRestaurants);
+  } = useDynamicPricing(menuItemsFromRestaurants, restaurants);
 
   // Initialize transaction service
   const transactionService = TransactionService.getInstance();
@@ -147,8 +159,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       value={{
         user,
         cart,
-        menuItems: dynamicMenuItems,
-        restaurants: mockRestaurants,
+        menuItems: menuItemsFromRestaurants,
+        restaurants,
+        setRestaurants,
+        setMenuItems,
         addToCart,
         removeFromCart,
         updateQuantity,
