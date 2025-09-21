@@ -1,22 +1,27 @@
 import React from 'react';
-import { Home, Search, ShoppingCart, User } from 'lucide-react';
+import { Home, Search, ShoppingCart, User, BarChart3 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'browse' | 'cart' | 'profile';
-  onTabChange: (tab: 'home' | 'browse' | 'cart' | 'profile') => void;
+  activeTab: 'home' | 'browse' | 'cart' | 'profile' | 'admin';
+  onTabChange: (tab: 'home' | 'browse' | 'cart' | 'profile' | 'admin') => void;
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
-  const { cart } = useApp();
+  const { cart, user } = useApp();
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const tabs = [
+  const baseTabs = [
     { id: 'home' as const, label: 'Home', icon: Home, badge: undefined },
     { id: 'browse' as const, label: 'Browse', icon: Search, badge: undefined },
     { id: 'cart' as const, label: 'Cart', icon: ShoppingCart, badge: cartItemCount > 0 ? cartItemCount : undefined },
     { id: 'profile' as const, label: 'Profile', icon: User, badge: undefined },
   ];
+
+  // Add Admin tab only for sellers
+  const tabs = user?.userType === 'seller' 
+    ? [...baseTabs, { id: 'admin' as const, label: 'Admin', icon: BarChart3, badge: undefined }]
+    : baseTabs;
 
   return (
     <nav className="bg-card border-t border-border">

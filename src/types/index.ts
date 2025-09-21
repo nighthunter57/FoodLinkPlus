@@ -9,6 +9,10 @@ export interface Restaurant {
   deals: boolean;
   estimatedTime: string;
   description?: string;
+  closingTime: string; // "22:00"
+  timezone: string;
+  inventoryLevel: 'low' | 'medium' | 'high';
+  nearbyStores: string[]; // IDs of nearby restaurants
 }
 
 export interface MenuItem {
@@ -24,6 +28,30 @@ export interface MenuItem {
   dietary: string[];
   available: boolean;
   timeLeft?: string;
+  
+  // New dynamic pricing fields
+  dynamicPricing: {
+    basePrice: number;
+    currentPrice: number;
+    priceHistory: PricePoint[];
+    demandLevel: 'low' | 'medium' | 'high';
+    surplusLevel: 'low' | 'medium' | 'high';
+    urgencyMultiplier: number;
+    expiryDate: Date;
+    closingTime: Date;
+    lastUpdated: Date;
+  };
+}
+
+export interface PricePoint {
+  timestamp: Date;
+  price: number;
+  factors: {
+    demand: number;
+    surplus: number;
+    timeToClosing: number;
+    timeToExpiry: number;
+  };
 }
 
 export interface CartItem {
@@ -37,6 +65,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  userType: 'customer' | 'seller';
   preferences: {
     dietary: string[];
     cuisines: string[];

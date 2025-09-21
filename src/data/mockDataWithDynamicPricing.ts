@@ -4,7 +4,7 @@ export const mockRestaurants: Restaurant[] = [
   {
     id: '1',
     name: 'Green Garden Bistro',
-    image: '/images/bistro-food.jpg',
+    image: '/public',
     cuisine: 'Mediterranean',
     rating: 4.8,
     distance: 0.3,
@@ -76,7 +76,18 @@ export const mockMenuItems: MenuItem[] = [
     category: 'Main Course',
     dietary: ['vegetarian', 'gluten-free'],
     available: true,
-    timeLeft: '2 hours'
+    timeLeft: '2 hours',
+    dynamicPricing: {
+      basePrice: 9.99,
+      currentPrice: 9.99,
+      priceHistory: [],
+      demandLevel: 'medium',
+      surplusLevel: 'medium',
+      urgencyMultiplier: 0.3,
+      expiryDate: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
+      closingTime: new Date(),
+      lastUpdated: new Date()
+    }
   },
   {
     id: '2',
@@ -90,7 +101,18 @@ export const mockMenuItems: MenuItem[] = [
     category: 'Main Course',
     dietary: [],
     available: true,
-    timeLeft: '1.5 hours'
+    timeLeft: '1.5 hours',
+    dynamicPricing: {
+      basePrice: 7.99,
+      currentPrice: 7.99,
+      priceHistory: [],
+      demandLevel: 'high',
+      surplusLevel: 'low',
+      urgencyMultiplier: 0.5,
+      expiryDate: new Date(Date.now() + 1.5 * 60 * 60 * 1000), // 1.5 hours from now
+      closingTime: new Date(),
+      lastUpdated: new Date()
+    }
   },
   {
     id: '3',
@@ -104,7 +126,18 @@ export const mockMenuItems: MenuItem[] = [
     category: 'Main Course',
     dietary: [],
     available: true,
-    timeLeft: '3 hours'
+    timeLeft: '3 hours',
+    dynamicPricing: {
+      basePrice: 11.99,
+      currentPrice: 11.99,
+      priceHistory: [],
+      demandLevel: 'medium',
+      surplusLevel: 'high',
+      urgencyMultiplier: 0.2,
+      expiryDate: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours from now
+      closingTime: new Date(),
+      lastUpdated: new Date()
+    }
   },
   {
     id: '4',
@@ -118,7 +151,18 @@ export const mockMenuItems: MenuItem[] = [
     category: 'Bakery',
     dietary: ['vegan'],
     available: true,
-    timeLeft: '4 hours'
+    timeLeft: '4 hours',
+    dynamicPricing: {
+      basePrice: 5.99,
+      currentPrice: 5.99,
+      priceHistory: [],
+      demandLevel: 'low',
+      surplusLevel: 'high',
+      urgencyMultiplier: 0.1,
+      expiryDate: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4 hours from now
+      closingTime: new Date(),
+      lastUpdated: new Date()
+    }
   },
   {
     id: '5',
@@ -132,6 +176,17 @@ export const mockMenuItems: MenuItem[] = [
     category: 'Breakfast',
     dietary: ['vegan', 'gluten-free'],
     available: true,
-    timeLeft: '45 minutes'
+    timeLeft: '45 minutes',
+    dynamicPricing: {
+      basePrice: 7.99,
+      currentPrice: 7.99,
+      priceHistory: [],
+      demandLevel: 'high',
+      surplusLevel: 'low',
+      urgencyMultiplier: 0.8,
+      expiryDate: new Date(Date.now() + 45 * 60 * 1000), // 45 minutes from now
+      closingTime: new Date(),
+      lastUpdated: new Date()
+    }
   }
 ];
