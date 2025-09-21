@@ -56,9 +56,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Initialize dynamic pricing
   const {
     dynamicMenuItems,
+    isLoading: isPricingLoading,
     lastUpdated,
     refreshPrices
-  } = useDynamicPricing(mockMenuItems, mockRestaurants);
+  } = useDynamicPricing();
 
   // Initialize transaction service
   const transactionService = TransactionService.getInstance();
