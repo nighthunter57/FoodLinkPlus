@@ -3,6 +3,7 @@ import { CartItem, User, MenuItem, Restaurant } from '@/types';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { mockMenuItems, mockRestaurants } from '@/data/mockDataWithDynamicPricing';
 import { TransactionService, Transaction } from '@/services/transactionService';
+import { useAuth0Auth } from '@/hooks/useAuth0Auth';
 
 interface AppContextType {
   user: User | null;
@@ -13,29 +14,39 @@ interface AppContextType {
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
-  signIn: (userData: Partial<User>) => void;
-  signOut: () => void;
+  signIn: (userType?: 'customer' | 'seller') => Promise<void>;
+  signOut: () => Promise<void>;
   refreshPrices: () => void;
   lastPriceUpdate: Date | null;
   processCheckout: () => Promise<Transaction>;
   transactionHistory: Transaction[];
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const useApp = () => {
+export function useApp() {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
-};
+}
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
   const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
+  
+  // Initialize Auth0 authentication
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    signIn: auth0SignIn,
+    signOut: auth0SignOut
+  } = useAuth0Auth();
   
   // Initialize dynamic pricing
   const {
@@ -97,26 +108,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCart([]);
   };
 
-  const signIn = (userData: Partial<User>) => {
-    setUser({
-      id: userData.id || '1',
-      name: userData.name || 'User',
-      email: userData.email || 'user@example.com',
-      phone: userData.phone,
-      userType: userData.userType || 'customer',
-      preferences: {
-        dietary: [],
-        cuisines: [],
-        budget: 25,
-        portionSize: 'regular'
-      },
-      isSignedIn: true,
-      ...userData
-    });
+  const signIn = async (userType?: 'customer' | 'seller') => {
+    await auth0SignIn(userType);
   };
 
-  const signOut = () => {
-    setUser(null);
+  const signOut = async () => {
+    await auth0SignOut();
     clearCart();
   };
 
@@ -158,7 +155,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         refreshPrices,
         lastPriceUpdate,
         processCheckout,
-        transactionHistory
+        transactionHistory,
+        isAuthenticated,
+        isLoading
       }}
     >
       {children}
