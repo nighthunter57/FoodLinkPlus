@@ -25,7 +25,7 @@ export const useAuth0Auth = () => {
   const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   // Extract user role from Auth0 user metadata
-  const getUserRole = useCallback((auth0User: any): 'customer' | 'seller' => {
+  const getUserRole = useCallback((auth0User: Record<string, unknown> | null): 'customer' | 'seller' => {
     // Debug: Log the user object to see what's available
     console.log('Auth0 User object:', auth0User);
     
@@ -50,7 +50,7 @@ export const useAuth0Auth = () => {
   }, []);
 
   // Convert Auth0 user to our User type
-  const convertAuth0User = useCallback((auth0User: any): User => {
+  const convertAuth0User = useCallback((auth0User: Record<string, unknown>): User => {
     const userType = getUserRole(auth0User);
     
     return {

@@ -10,13 +10,13 @@ interface AuthWrapperProps {
 export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const hasValidConfig = validateAuth0Config();
   
+  // Always call the hook, but conditionally use its data
+  const auth0Hook = useAuth0();
+  
   if (!hasValidConfig) {
     // Return children without Auth0 context
     return <>{children}</>;
   }
-  
-  // Use Auth0 hook only when config is valid
-  const auth0Hook = useAuth0();
   
   // Pass Auth0 data through context or props as needed
   return <>{children}</>;
