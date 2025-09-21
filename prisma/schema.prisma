@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = "mongodb+srv://demo123:Wizardmaster682@cluster0.lzn2q44.mongodb.net/foodWasteDB?retryWrites=true&w=majority&appName=Cluster0"
+  url      = env("DATABASE_URL")
 }
 
 type RestaurantsListings {
