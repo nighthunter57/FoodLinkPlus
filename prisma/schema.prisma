@@ -7,24 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-type RestaurantsListings {
+type NewrestaurantsListings {
   discountedPrice Int
   originalPrice   Int
   quantity        Int
   title           String
 }
 
-model restaurants {
-  id             String                @id @default(auto()) @map("_id") @db.ObjectId
+model Newrestaurants {
+  id             String                   @id @default(auto()) @map("_id") @db.ObjectId
   averageRating  String
   description    String
   displayAddress String
-  /// Multiple data types found: String: 87.2%, Float: 12.8% out of 1000 sampled entries
+  /// Multiple data types found: String: 86.7%, Float: 13.3% out of 1000 sampled entries
   imageUrl       Json
-  listings       RestaurantsListings[]
+  latitude       String
+  listings       NewrestaurantsListings[]
+  longitude      String
   name           String
   passwordHash   String
-  /// Multiple data types found: String: 97.1%, Float: 2.9% out of 1000 sampled entries
+  /// Multiple data types found: String: 97.4%, Float: 2.6% out of 1000 sampled entries
   priceRange     Json
   ratingCount    String
   username       String
