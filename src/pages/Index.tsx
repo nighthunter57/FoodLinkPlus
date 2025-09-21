@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from '@/contexts/AppContext';
 import BottomNavigation from '@/components/Layout/BottomNavigation';
 import HomeScreen from '@/components/Screens/HomeScreen';
@@ -25,6 +25,13 @@ const AppContent = () => {
     setShowCreateListing(false); // Close the create listing screen
     setActiveTab('home'); // Navigate back to home after creating listing
   };
+
+  // Auto-redirect restaurant users to admin dashboard after sign-in
+  useEffect(() => {
+    if (user?.userType === 'seller' && activeTab !== 'admin') {
+      setActiveTab('admin');
+    }
+  }, [user?.userType, activeTab]);
 
   const renderScreen = () => {
     // Show create listing screen if it's active

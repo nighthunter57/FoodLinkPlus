@@ -31,8 +31,16 @@ export const useAuth0Auth = () => {
                  auth0User?.app_metadata?.roles?.[0] ||
                  auth0User?.user_metadata?.role;
     
-    // Default to customer if no role is specified
-    return role === 'restaurant' || role === 'seller' ? 'seller' : 'customer';
+    // Check if the user signed in as a restaurant by looking at the login hint
+    // This is a temporary solution - in production, you'd set roles in Auth0
+    const isRestaurantSignIn = localStorage.getItem('auth0_login_type') === 'seller';
+    
+    // Clear the login type after checking
+    if (isRestaurantSignIn) {
+      localStorage.removeItem('auth0_login_type');
+    }
+    
+    return role === 'restaurant' || role === 'seller' || isRestaurantSignIn ? 'seller' : 'customer';
   }, []);
 
   // Convert Auth0 user to our User type
@@ -75,6 +83,11 @@ export const useAuth0Auth = () => {
 
   const signIn = useCallback(async (userType?: 'customer' | 'seller') => {
     try {
+      // Store the login type in localStorage so we can detect it after redirect
+      if (userType) {
+        localStorage.setItem('auth0_login_type', userType);
+      }
+      
       // You can customize the login parameters based on user type
       const loginParams = {
         ...(userType && {
