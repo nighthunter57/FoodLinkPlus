@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { LoginForm } from '@/components/Auth/LoginForm';
+import { AuthDebug } from '@/components/Debug/AuthDebug';
 
 const ProfileScreen = ({ onNavigateToCreateListing }: { onNavigateToCreateListing?: () => void }) => {
   const { user, isAuthenticated, isLoading, foodListings, signOut } = useApp();
@@ -134,6 +135,9 @@ const ProfileScreen = ({ onNavigateToCreateListing }: { onNavigateToCreateListin
             </CardContent>
           </Card>
         )}
+
+        {/* Auth Debug Info */}
+        <AuthDebug />
 
         {/* Auth0 Demo Info */}
         <Card>

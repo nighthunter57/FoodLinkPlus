@@ -45,16 +45,16 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
         
         {/* Deals Badge */}
         {restaurant.deals && (
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-accent text-accent-foreground">
+          <div className="absolute top-2 left-2">
+            <Badge className="bg-accent text-accent-foreground text-xs">
               <Zap className="h-3 w-3 mr-1" />
-              Deals Available
+              Deals
             </Badge>
           </div>
         )}
 
         {/* Inventory Level */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-2 right-2">
           <Badge className={`text-xs ${getInventoryColor(restaurant.inventoryLevel)}`}>
             {getInventoryIcon(restaurant.inventoryLevel)} {restaurant.inventoryLevel}
           </Badge>

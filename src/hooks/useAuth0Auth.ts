@@ -26,10 +26,16 @@ export const useAuth0Auth = () => {
 
   // Extract user role from Auth0 user metadata
   const getUserRole = useCallback((auth0User: any): 'customer' | 'seller' => {
-    // Check for role in user metadata or app_metadata
+    // Debug: Log the user object to see what's available
+    console.log('Auth0 User object:', auth0User);
+    
+    // Check for role in various possible locations
     const role = auth0User?.['https://bagbybag.com/roles'] || 
                  auth0User?.app_metadata?.roles?.[0] ||
-                 auth0User?.user_metadata?.role;
+                 auth0User?.user_metadata?.role ||
+                 auth0User?.roles?.[0];
+    
+    console.log('Detected role:', role);
     
     // Default to customer if no role is specified
     return role === 'restaurant' || role === 'seller' ? 'seller' : 'customer';

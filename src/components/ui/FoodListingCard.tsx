@@ -136,64 +136,64 @@ export const FoodListingCard: React.FC<FoodListingCardProps> = ({
           </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           {/* Title and Category */}
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-lg text-foreground line-clamp-2">
+            <h3 className="font-semibold text-sm text-foreground line-clamp-2 flex-1 mr-2">
               {listing.title}
             </h3>
-            <Badge variant="outline" className="ml-2 text-xs">
+            <Badge variant="outline" className="text-xs shrink-0">
               {listing.category}
             </Badge>
           </div>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-xs text-muted-foreground mb-1 line-clamp-1">
             {listing.description}
           </p>
 
           {/* Dietary Information */}
           {listing.dietary && listing.dietary.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {listing.dietary.slice(0, 3).map((diet) => (
+            <div className="flex flex-wrap gap-1 mb-1">
+              {listing.dietary.slice(0, 2).map((diet) => (
                 <Badge key={diet} variant="secondary" className="text-xs">
                   {diet}
                 </Badge>
               ))}
-              {listing.dietary.length > 3 && (
+              {listing.dietary.length > 2 && (
                 <Badge variant="secondary" className="text-xs">
-                  +{listing.dietary.length - 3} more
+                  +{listing.dietary.length - 2}
                 </Badge>
               )}
             </div>
           )}
 
           {/* Pricing */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-foreground">
+              <span className="text-base font-bold text-foreground">
                 ${listing.discountedPrice.toFixed(2)}
               </span>
               {listing.originalPrice > listing.discountedPrice && (
-                <span className="text-sm text-muted-foreground line-through">
+                <span className="text-xs text-muted-foreground line-through">
                   ${listing.originalPrice.toFixed(2)}
                 </span>
               )}
             </div>
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span>{listing.freshnessScore}/10</span>
             </div>
           </div>
 
           {/* Time Left */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
               <span>{formatTimeLeft(listing.timeLeft)}</span>
             </div>
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
               <span>0.5 mi</span>
             </div>
           </div>
@@ -203,23 +203,23 @@ export const FoodListingCard: React.FC<FoodListingCardProps> = ({
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="flex-1 text-xs px-1"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onViewDetails) onViewDetails(listing);
               }}
             >
-              <Eye className="h-4 w-4 mr-1" />
-              View Details
+              <Eye className="h-3 w-3 mr-1" />
+              View
             </Button>
             <Button
               size="sm"
-              className="flex-1"
+              className="flex-1 text-xs px-1"
               onClick={handleAddToCart}
               disabled={!listing.available}
             >
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              Add to Cart
+              <ShoppingCart className="h-3 w-3 mr-1" />
+              Add
             </Button>
           </div>
         </CardContent>
