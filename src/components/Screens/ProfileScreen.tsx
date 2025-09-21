@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { LoginForm } from '@/components/Auth/LoginForm';
-import { Auth0Debug } from '@/components/Auth/Auth0Debug';
 
 const ProfileScreen = () => {
   const { user, isAuthenticated, isLoading } = useApp();
@@ -33,7 +32,6 @@ const ProfileScreen = () => {
           <h1 className="text-xl font-bold text-foreground">Profile</h1>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <Auth0Debug />
           <LoginForm />
         </div>
       </div>

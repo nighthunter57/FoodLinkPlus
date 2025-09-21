@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { MapPin, MessageCircle, Sparkles, Clock, Star, ShoppingBag, Plus, Minus, Trash2, CheckCircle } from 'lucide-react';
+import { MapPin, ShoppingBag, Plus, Minus, Trash2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
-import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { useToast } from '@/hooks/use-toast';
+import { FoodConcierge } from './FoodConcierge';
+import { DealCard } from './DealCard';
 
 const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any) => void }) => {
   const { user, cart, menuItems, restaurants, addToCart, updateQuantity, removeFromCart, transactionHistory } = useApp();
@@ -114,75 +114,13 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* How many people are you feeding today section - MOVED TO TOP */}
-        <Card className="border-2 border-primary/20 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center">
-                <MessageCircle size={20} className="text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Sam, your food concierge</h3>
-                <p className="text-sm text-muted-foreground">Here to help you find the perfect meal</p>
-              </div>
-            </div>
-
-            {chatMessages.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-foreground">{questions[currentQuestion].text}</p>
-                <div className="flex flex-wrap gap-2">
-                  {questions[currentQuestion].options.map((option) => (
-                    <Button
-                      key={option}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickResponse(option)}
-                      className="text-xs"
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {chatMessages.map((message, index) => (
-                  <div key={index} className="text-sm bg-secondary p-2 rounded-lg">
-                    {message}
-                  </div>
-                ))}
-                {currentQuestion < questions.length - 1 && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-foreground">{questions[currentQuestion].text}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {questions[currentQuestion].options.map((option) => (
-                        <Button
-                          key={option}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleQuickResponse(option)}
-                          className="text-xs"
-                        >
-                          {option}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex gap-2 mt-4">
-              <Button size="sm" className="bg-gradient-to-r from-accent to-accent/80">
-                <Sparkles size={14} className="mr-1" />
-                Surprise Me!
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleBrowseDeals}>
-                Browse Deals
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <FoodConcierge
+          questions={questions}
+          currentQuestion={currentQuestion}
+          chatMessages={chatMessages}
+          handleQuickResponse={handleQuickResponse}
+          handleBrowseDeals={handleBrowseDeals}
+        />
 
         {/* Good Deals Section */}
         <div>
@@ -197,80 +135,18 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
             {goodDeals.map((item) => {
               const restaurant = restaurants.find(r => r.id === item.restaurantId);
               return (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardContent className="p-3">
-                    <div className="flex gap-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-1">
-                          <h3 className="font-medium text-sm text-foreground truncate">{item.name}</h3>
-                          <Badge variant="secondary" className="text-xs bg-accent text-accent-foreground">
-                            {item.discountPercentage}% off
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">{restaurant?.name}</p>
-                        <div className="flex items-center justify-between">
-                          <DynamicPriceDisplay item={item} size="sm" />
-                          <div className="flex items-center text-xs text-warning">
-                            <Clock size={12} className="mr-1" />
-                            {item.timeLeft}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <DealCard key={item.id} item={item} restaurant={restaurant} />
               );
             })}
           </div>
         </div>
 
-        {/* Order Widget - Only show if cart has items */}
-        {cart.length > 0 && (
-          <Card className="border-2 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <ShoppingBag size={18} className="text-primary" />
-                <h3 className="font-semibold text-foreground">Current Order</h3>
-                <Badge variant="secondary" className="ml-auto">{cart.length} item{cart.length !== 1 ? 's' : ''}</Badge>
-              </div>
-              
-              <div className="space-y-2 mb-3">
-                {cart.slice(0, 2).map((item) => (
-                  <div key={item.menuItem.id} className="flex items-center justify-between text-sm">
-                    <span className="truncate">{item.quantity}x {item.menuItem.name}</span>
-                    <span className="font-medium">${(item.menuItem.dynamicPricing.currentPrice * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
-                {cart.length > 2 && (
-                  <div className="text-xs text-muted-foreground">
-                    +{cart.length - 2} more item{cart.length - 2 !== 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center justify-between text-sm font-semibold mb-3">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              
-              <Button className="w-full" size="sm">
-                View Cart
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Rating Past Orders - Only show if there's a recent transaction */}
+        {/* Rate your last order */}
         {isRecentTransaction && !ratingSubmitted && (
           <Card className="border-2 border-green-200 bg-green-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle size={18} className="text-green-600" />
+                <Star size={18} className="text-green-600" />
                 <h3 className="font-semibold text-foreground">Rate Your Recent Order</h3>
               </div>
               
@@ -296,6 +172,48 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
           </Card>
         )}
 
+        {/* Cart Section */}
+        {cart.length > 0 && (
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-4">Your Cart</h3>
+              <div className="space-y-4">
+                {cart.map(cartItem => (
+                  <div key={cartItem.menuItem.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{cartItem.menuItem.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        ${cartItem.menuItem.dynamicPricing.currentPrice.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="icon" variant="outline" onClick={() => updateQuantity(cartItem.menuItem.id, cartItem.quantity - 1)}>
+                        <Minus size={14} />
+                      </Button>
+                      <span>{cartItem.quantity}</span>
+                      <Button size="icon" variant="outline" onClick={() => updateQuantity(cartItem.menuItem.id, cartItem.quantity + 1)}>
+                        <Plus size={14} />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => removeFromCart(cartItem.menuItem.id)}>
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t mt-4 pt-4">
+                <div className="flex justify-between font-semibold">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+                <Button className="w-full mt-4">
+                  <ShoppingBag size={16} className="mr-2" />
+                  Checkout
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

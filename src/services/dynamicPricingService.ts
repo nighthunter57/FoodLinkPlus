@@ -30,6 +30,10 @@ export class DynamicPricingService {
     this.startPriceUpdates();
   }
 
+  public getMenuItems(): MenuItem[] {
+    return this.menuItems;
+  }
+
   public subscribe(callback: (items: MenuItem[]) => void) {
     this.subscribers.push(callback);
     return () => {
@@ -54,10 +58,14 @@ export class DynamicPricingService {
     }
   }
 
-  private updateAllPrices() {
+  public updateAllPrices() {
     const updatedItems = this.menuItems.map(item => this.calculateDynamicPrice(item));
     this.menuItems = updatedItems;
     this.notifySubscribers();
+  }
+
+  private notifySubscribers() {
+    this.subscribers.forEach(callback => callback(this.menuItems));
   }
 
   private calculateDynamicPrice(item: MenuItem): MenuItem {
@@ -239,10 +247,6 @@ export class DynamicPricingService {
 
   private calculateUrgencyMultiplier(factors: any): number {
     return (factors.timeToClosing + factors.timeToExpiry) / 2;
-  }
-
-  private notifySubscribers() {
-    this.subscribers.forEach(callback => callback([...this.menuItems]));
   }
 
   public getCurrentPrices(): MenuItem[] {
