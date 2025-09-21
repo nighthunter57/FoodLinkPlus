@@ -10,13 +10,19 @@ import AdminDashboard from '@/components/Screens/AdminDashboard';
 const AppContent = () => {
   const { user } = useApp();
   const [activeTab, setActiveTab] = useState<'home' | 'browse' | 'cart' | 'profile' | 'admin'>('home');
+  const [browseFilters, setBrowseFilters] = useState<any>(null);
+
+  const handleNavigateToBrowse = (filters: any) => {
+    setBrowseFilters(filters);
+    setActiveTab('browse');
+  };
 
   const renderScreen = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeScreen />;
+        return <HomeScreen onNavigateToBrowse={handleNavigateToBrowse} />;
       case 'browse':
-        return <BrowseScreen />;
+        return <BrowseScreen initialFilters={browseFilters} />;
       case 'cart':
         return <CartScreen />;
       case 'profile':
@@ -27,9 +33,9 @@ const AppContent = () => {
           return <AdminDashboard />;
         }
         // Fallback to home if customer tries to access admin
-        return <HomeScreen />;
+        return <HomeScreen onNavigateToBrowse={handleNavigateToBrowse} />;
       default:
-        return <HomeScreen />;
+        return <HomeScreen onNavigateToBrowse={handleNavigateToBrowse} />;
     }
   };
 

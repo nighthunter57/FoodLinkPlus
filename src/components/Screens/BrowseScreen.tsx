@@ -8,16 +8,18 @@ import { useApp } from '@/contexts/AppContext';
 import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { MenuItem, Restaurant } from '@/types';
 
-const BrowseScreen = () => {
+const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
   const { addToCart, menuItems, restaurants } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMapView, setIsMapView] = useState(false);
   const [filters, setFilters] = useState({
     cuisine: '',
-    dietary: '',
-    priceRange: '',
+    dietary: initialFilters?.dietary || '',
+    priceRange: initialFilters?.budget || '',
     distance: '',
-    deals: false
+    deals: initialFilters?.deals || false,
+    mealType: initialFilters?.mealType || '',
+    peopleCount: initialFilters?.peopleCount || ''
   });
 
   const filteredItems = menuItems.filter(item => {
@@ -25,7 +27,30 @@ const BrowseScreen = () => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          restaurant?.name.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesSearch && item.available;
+    // Apply dietary filters
+    const matchesDietary = !filters.dietary || 
+      item.dietary.some(diet => diet.toLowerCase().includes(filters.dietary.toLowerCase()));
+    
+    // Apply price range filters
+    const matchesPrice = !filters.priceRange || (() => {
+      const price = item.dynamicPricing?.currentPrice || item.discountedPrice;
+      switch (filters.priceRange) {
+        case 'Under $15': return price < 15;
+        case '$15-25': return price >= 15 && price <= 25;
+        case '$25-40': return price >= 25 && price <= 40;
+        case '$40+': return price > 40;
+        default: return true;
+      }
+    })();
+    
+    // Apply meal type filters
+    const matchesMealType = !filters.mealType || 
+      item.category.toLowerCase().includes(filters.mealType.toLowerCase());
+    
+    // Apply deals filter
+    const matchesDeals = !filters.deals || item.discountPercentage > 20;
+    
+    return matchesSearch && item.available && matchesDietary && matchesPrice && matchesMealType && matchesDeals;
   });
 
   const handleAddToCart = (item: MenuItem) => {
@@ -89,10 +114,27 @@ const BrowseScreen = () => {
             <Filter size={14} className="mr-1" />
             Filters
           </Button>
+          {filters.dietary && (
+            <Button variant="default" size="sm" className="bg-accent">
+              {filters.dietary}
+            </Button>
+          )}
+          {filters.priceRange && (
+            <Button variant="default" size="sm" className="bg-accent">
+              {filters.priceRange}
+            </Button>
+          )}
+          {filters.mealType && (
+            <Button variant="default" size="sm" className="bg-accent">
+              {filters.mealType}
+            </Button>
+          )}
+          {filters.deals && (
+            <Button variant="default" size="sm" className="bg-accent">
+              Deals
+            </Button>
+          )}
           <Button variant="outline" size="sm">Distance</Button>
-          <Button variant="outline" size="sm">Dietary</Button>
-          <Button variant="outline" size="sm">Price</Button>
-          <Button variant="outline" size="sm">Deals</Button>
         </div>
       </div>
 
