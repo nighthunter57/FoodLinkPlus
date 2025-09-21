@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Settings, CreditCard, Heart, Clock, Star, LogIn, UserPlus, Camera, Plus } from 'lucide-react';
+import { User, Settings, CreditCard, Heart, Clock, Star, LogIn, UserPlus, Camera, Plus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 import { LoginForm } from '@/components/Auth/LoginForm';
 
 const ProfileScreen = ({ onNavigateToCreateListing }: { onNavigateToCreateListing?: () => void }) => {
-  const { user, isAuthenticated, isLoading, foodListings } = useApp();
+  const { user, isAuthenticated, isLoading, foodListings, signOut } = useApp();
 
   if (isLoading) {
     return (
@@ -148,6 +148,20 @@ const ProfileScreen = ({ onNavigateToCreateListing }: { onNavigateToCreateListin
               This user profile is now managed through Auth0 authentication. 
               To enable full Auth0 functionality, configure your Auth0 credentials in .env.local
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Logout Button */}
+        <Card>
+          <CardContent className="p-4">
+            <Button
+              onClick={signOut}
+              variant="outline"
+              className="w-full"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import FoodListingCard from '@/components/ui/FoodListingCard';
+import RestaurantCard from '@/components/ui/RestaurantCard';
 import { MenuItem, Restaurant, FoodListing } from '@/types';
 
 const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
@@ -56,6 +57,32 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
     return matchesSearch && item.available && matchesDietary && matchesPrice && matchesMealType && matchesDeals;
   });
 
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         restaurant.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Apply cuisine filters
+    const matchesCuisine = !filters.cuisine || 
+      restaurant.cuisine.toLowerCase().includes(filters.cuisine.toLowerCase());
+    
+    // Apply deals filter
+    const matchesDeals = !filters.deals || restaurant.deals;
+    
+    // Apply distance filter
+    const matchesDistance = !filters.distance || (() => {
+      switch (filters.distance) {
+        case 'Under 1 mi': return restaurant.distance < 1;
+        case '1-2 mi': return restaurant.distance >= 1 && restaurant.distance <= 2;
+        case '2-5 mi': return restaurant.distance >= 2 && restaurant.distance <= 5;
+        case '5+ mi': return restaurant.distance > 5;
+        default: return true;
+      }
+    })();
+    
+    return matchesSearch && matchesCuisine && matchesDeals && matchesDistance;
+  });
+
   const filteredListings = foodListings.filter(listing => {
     const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          listing.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -95,6 +122,12 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
         quantity: 1
       });
     }
+  };
+
+  const handleViewRestaurantMenu = (restaurant: Restaurant) => {
+    // In a real app, this would navigate to a restaurant menu screen
+    // For now, we'll just show an alert
+    alert(`Viewing menu for ${restaurant.name}`);
   };
 
   const handleAddListingToCart = (listing: FoodListing) => {
@@ -199,27 +232,48 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
             <Filter size={14} className="mr-1" />
             Filters
           </Button>
-          {filters.dietary && (
-            <Button variant="default" size="sm" className="bg-accent">
-              {filters.dietary}
-            </Button>
+          {activeTab === 'restaurants' ? (
+            <>
+              {filters.cuisine && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  {filters.cuisine}
+                </Button>
+              )}
+              {filters.distance && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  {filters.distance}
+                </Button>
+              )}
+              {filters.deals && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  Deals
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              {filters.dietary && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  {filters.dietary}
+                </Button>
+              )}
+              {filters.priceRange && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  {filters.priceRange}
+                </Button>
+              )}
+              {filters.mealType && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  {filters.mealType}
+                </Button>
+              )}
+              {filters.deals && (
+                <Button variant="default" size="sm" className="bg-accent">
+                  Deals
+                </Button>
+              )}
+            </>
           )}
-          {filters.priceRange && (
-            <Button variant="default" size="sm" className="bg-accent">
-              {filters.priceRange}
-            </Button>
-          )}
-          {filters.mealType && (
-            <Button variant="default" size="sm" className="bg-accent">
-              {filters.mealType}
-            </Button>
-          )}
-          {filters.deals && (
-            <Button variant="default" size="sm" className="bg-accent">
-              Deals
-            </Button>
-          )}
-          <Button variant="outline" size="sm">Distance</Button>
         </div>
       </div>
 
@@ -247,61 +301,51 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
               </TabsList>
 
               <TabsContent value="restaurants" className="space-y-6">
-            {/* Quick Pickup Section */}
-            {urgentItems.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">⚡</span>
-                  <h2 className="font-semibold text-foreground">Quick Pickup</h2>
-                  <Badge variant="secondary" className="bg-warning text-warning-foreground">
-                    Ending Soon
-                  </Badge>
-                </div>
-                <div className="space-y-3">
-                  {urgentItems.slice(0, 3).map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      onAddToCart={handleAddToCart}
-                      urgent={true}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Restaurants with Deals */}
+                {filteredRestaurants.filter(r => r.deals).length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">🔥</span>
+                      <h2 className="font-semibold text-foreground">Restaurants with Deals</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredRestaurants
+                        .filter(r => r.deals)
+                        .slice(0, 4)
+                        .map((restaurant) => (
+                          <RestaurantCard
+                            key={restaurant.id}
+                            restaurant={restaurant}
+                            onViewMenu={handleViewRestaurantMenu}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Hot Deals Section */}
-            {dealItems.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">🔥</span>
-                  <h2 className="font-semibold text-foreground">Hot Deals</h2>
+                {/* All Restaurants */}
+                <div>
+                  <h2 className="font-semibold text-foreground mb-3">All Restaurants</h2>
+                  {filteredRestaurants.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredRestaurants.map((restaurant) => (
+                        <RestaurantCard
+                          key={restaurant.id}
+                          restaurant={restaurant}
+                          onViewMenu={handleViewRestaurantMenu}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Grid className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No restaurants found</h3>
+                      <p className="text-muted-foreground">
+                        Try adjusting your search or filters to find restaurants near you.
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {dealItems.slice(0, 4).map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      onAddToCart={handleAddToCart}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* All Items */}
-            <div>
-              <h2 className="font-semibold text-foreground mb-3">All Available</h2>
-              <div className="space-y-3">
-                {filteredItems.map((item) => (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    onAddToCart={handleAddToCart}
-                  />
-                ))}
-              </div>
-            </div>
               </TabsContent>
 
               <TabsContent value="listings" className="space-y-6">
