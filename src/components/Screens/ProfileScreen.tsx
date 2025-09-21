@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Settings, CreditCard, Heart, Clock, Star, LogIn, UserPlus } from 'lucide-react';
+import { User, Settings, CreditCard, Heart, Clock, Star, LogIn, UserPlus, Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +7,8 @@ import { useApp } from '@/contexts/AppContext';
 import { LoginForm } from '@/components/Auth/LoginForm';
 import { Auth0Debug } from '@/components/Auth/Auth0Debug';
 
-const ProfileScreen = () => {
-  const { user, isAuthenticated, isLoading } = useApp();
+const ProfileScreen = ({ onNavigateToCreateListing }: { onNavigateToCreateListing?: () => void }) => {
+  const { user, isAuthenticated, isLoading, foodListings } = useApp();
 
   if (isLoading) {
     return (
@@ -70,6 +70,72 @@ const ProfileScreen = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Seller Actions */}
+        {user.userType === 'seller' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Seller Dashboard</CardTitle>
+              <CardDescription>
+                Manage your food listings and business
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Active Listings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {foodListings.filter(l => l.available).length} active listings
+                  </p>
+                </div>
+                <Badge variant="secondary">
+                  {foodListings.length} total
+                </Badge>
+              </div>
+              
+              {onNavigateToCreateListing && (
+                <Button 
+                  onClick={onNavigateToCreateListing}
+                  className="w-full flex items-center space-x-2"
+                >
+                  <Camera className="h-4 w-4" />
+                  <span>Create New Listing</span>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Listings for Sellers */}
+        {user.userType === 'seller' && foodListings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Listings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {foodListings.slice(0, 3).map((listing) => (
+                  <div key={listing.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                    <img
+                      src={listing.images[0]}
+                      alt={listing.title}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{listing.title}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        ${listing.discountedPrice} • {listing.freshnessScore}/10 freshness
+                      </p>
+                    </div>
+                    <Badge variant={listing.available ? 'default' : 'secondary'}>
+                      {listing.available ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Auth0 Demo Info */}
         <Card>

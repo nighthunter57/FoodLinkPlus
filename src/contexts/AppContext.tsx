@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { CartItem, User, MenuItem, Restaurant } from '@/types';
+import { CartItem, User, MenuItem, Restaurant, FoodListing } from '@/types';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { mockMenuItems, mockRestaurants } from '@/data/mockDataWithDynamicPricing';
 import { TransactionService, Transaction } from '@/services/transactionService';
@@ -10,6 +10,7 @@ interface AppContextType {
   cart: CartItem[];
   menuItems: MenuItem[];
   restaurants: Restaurant[];
+  foodListings: FoodListing[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -22,6 +23,9 @@ interface AppContextType {
   transactionHistory: Transaction[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  addFoodListing: (listing: FoodListing) => void;
+  updateFoodListing: (id: string, updates: Partial<FoodListing>) => void;
+  deleteFoodListing: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,6 +42,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
   const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
+  const [foodListings, setFoodListings] = useState<FoodListing[]>([]);
   
   // Initialize Auth0 authentication
   const {
@@ -139,6 +144,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const addFoodListing = (listing: FoodListing) => {
+    setFoodListings(prev => [...prev, listing]);
+  };
+
+  const updateFoodListing = (id: string, updates: Partial<FoodListing>) => {
+    setFoodListings(prev => 
+      prev.map(listing => 
+        listing.id === id 
+          ? { ...listing, ...updates, updatedAt: new Date() }
+          : listing
+      )
+    );
+  };
+
+  const deleteFoodListing = (id: string) => {
+    setFoodListings(prev => prev.filter(listing => listing.id !== id));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -146,6 +169,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         cart,
         menuItems: dynamicMenuItems,
         restaurants: mockRestaurants,
+        foodListings,
         addToCart,
         removeFromCart,
         updateQuantity,
@@ -157,7 +181,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         processCheckout,
         transactionHistory,
         isAuthenticated,
-        isLoading
+        isLoading,
+        addFoodListing,
+        updateFoodListing,
+        deleteFoodListing
       }}
     >
       {children}

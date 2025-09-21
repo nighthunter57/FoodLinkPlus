@@ -74,3 +74,35 @@ export interface User {
   };
   isSignedIn: boolean;
 }
+
+export interface FoodListing {
+  id: string;
+  sellerId: string;
+  title: string;
+  description: string;
+  images: string[];
+  originalPrice: number;
+  discountedPrice: number;
+  discountPercentage: number;
+  category: string;
+  dietary: string[];
+  available: boolean;
+  timeLeft?: string;
+  freshnessScore: number; // 1-10 scale
+  aiAnalysis: {
+    freshness: 'excellent' | 'good' | 'fair' | 'poor';
+    summary: string;
+    detectedItems: string[];
+    qualityNotes: string[];
+    recommendedPrice: number;
+    estimatedExpiry: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PhotoUpload {
+  file: File;
+  preview: string;
+  id: string;
+}

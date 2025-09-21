@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Grid, Map, Star, Clock } from 'lucide-react';
+import { Search, Filter, MapPin, Grid, Map, Star, Clock, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
-import { MenuItem, Restaurant } from '@/types';
+import FoodListingCard from '@/components/ui/FoodListingCard';
+import { MenuItem, Restaurant, FoodListing } from '@/types';
 
 const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
-  const { addToCart, menuItems, restaurants } = useApp();
+  const { addToCart, menuItems, restaurants, foodListings } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMapView, setIsMapView] = useState(false);
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'listings'>('restaurants');
   const [filters, setFilters] = useState({
     cuisine: '',
     dietary: initialFilters?.dietary || '',
@@ -53,6 +56,36 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
     return matchesSearch && item.available && matchesDietary && matchesPrice && matchesMealType && matchesDeals;
   });
 
+  const filteredListings = foodListings.filter(listing => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Apply dietary filters
+    const matchesDietary = !filters.dietary || 
+      listing.dietary.some(diet => diet.toLowerCase().includes(filters.dietary.toLowerCase()));
+    
+    // Apply price range filters
+    const matchesPrice = !filters.priceRange || (() => {
+      const price = listing.discountedPrice;
+      switch (filters.priceRange) {
+        case 'Under $15': return price < 15;
+        case '$15-25': return price >= 15 && price <= 25;
+        case '$25-40': return price >= 25 && price <= 40;
+        case '$40+': return price > 40;
+        default: return true;
+      }
+    })();
+    
+    // Apply meal type filters
+    const matchesMealType = !filters.mealType || 
+      listing.category.toLowerCase().includes(filters.mealType.toLowerCase());
+    
+    // Apply deals filter
+    const matchesDeals = !filters.deals || listing.discountPercentage > 20;
+    
+    return matchesSearch && listing.available && matchesDietary && matchesPrice && matchesMealType && matchesDeals;
+  });
+
   const handleAddToCart = (item: MenuItem) => {
     const restaurant = restaurants.find(r => r.id === item.restaurantId);
     if (restaurant) {
@@ -62,6 +95,58 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
         quantity: 1
       });
     }
+  };
+
+  const handleAddListingToCart = (listing: FoodListing) => {
+    // For now, we'll create a mock menu item from the listing
+    // In a real app, you'd have a proper conversion or separate cart handling
+    const mockMenuItem: MenuItem = {
+      id: listing.id,
+      restaurantId: listing.sellerId,
+      name: listing.title,
+      description: listing.description,
+      image: listing.images[0],
+      originalPrice: listing.originalPrice,
+      discountedPrice: listing.discountedPrice,
+      discountPercentage: listing.discountPercentage,
+      category: listing.category,
+      dietary: listing.dietary,
+      available: listing.available,
+      timeLeft: listing.timeLeft,
+      dynamicPricing: {
+        basePrice: listing.originalPrice,
+        currentPrice: listing.discountedPrice,
+        priceHistory: [],
+        demandLevel: 'medium',
+        surplusLevel: 'medium',
+        urgencyMultiplier: 0.5,
+        expiryDate: listing.aiAnalysis?.estimatedExpiry || new Date(),
+        closingTime: new Date(),
+        lastUpdated: new Date()
+      }
+    };
+
+    const mockRestaurant: Restaurant = {
+      id: listing.sellerId,
+      name: 'Local Seller',
+      image: listing.images[0],
+      cuisine: 'Local',
+      rating: 4.5,
+      distance: 0.5,
+      deals: true,
+      estimatedTime: '15-20 min',
+      description: 'Local food seller',
+      closingTime: '22:00',
+      timezone: 'America/New_York',
+      inventoryLevel: 'medium',
+      nearbyStores: []
+    };
+
+    addToCart({
+      menuItem: mockMenuItem,
+      restaurant: mockRestaurant,
+      quantity: 1
+    });
   };
 
   const urgentItems = filteredItems.filter(item => {
@@ -148,7 +233,20 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
             </div>
           </div>
         ) : (
-          <div className="p-4 space-y-6">
+          <div className="p-4">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'restaurants' | 'listings')} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="restaurants" className="flex items-center space-x-2">
+                  <Grid className="h-4 w-4" />
+                  <span>Restaurants</span>
+                </TabsTrigger>
+                <TabsTrigger value="listings" className="flex items-center space-x-2">
+                  <Camera className="h-4 w-4" />
+                  <span>Food Listings</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="restaurants" className="space-y-6">
             {/* Quick Pickup Section */}
             {urgentItems.length > 0 && (
               <div>
@@ -204,6 +302,59 @@ const BrowseScreen = ({ initialFilters }: { initialFilters?: any }) => {
                 ))}
               </div>
             </div>
+              </TabsContent>
+
+              <TabsContent value="listings" className="space-y-6">
+                {/* Fresh Listings Section */}
+                {filteredListings.filter(l => l.freshnessScore >= 8).length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">✨</span>
+                      <h2 className="font-semibold text-foreground">Fresh & High Quality</h2>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        Excellent Quality
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredListings
+                        .filter(l => l.freshnessScore >= 8)
+                        .slice(0, 4)
+                        .map((listing) => (
+                          <FoodListingCard
+                            key={listing.id}
+                            listing={listing}
+                            onAddToCart={handleAddListingToCart}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* All Food Listings */}
+                <div>
+                  <h2 className="font-semibold text-foreground mb-3">All Food Listings</h2>
+                  {filteredListings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredListings.map((listing) => (
+                        <FoodListingCard
+                          key={listing.id}
+                          listing={listing}
+                          onAddToCart={handleAddListingToCart}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No food listings found</h3>
+                      <p className="text-muted-foreground">
+                        Try adjusting your filters or check back later for new listings.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>

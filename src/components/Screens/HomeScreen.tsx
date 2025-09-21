@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, MessageCircle, Sparkles, Clock, Star, ShoppingBag, Plus, Minus, Trash2, CheckCircle } from 'lucide-react';
+import { MapPin, MessageCircle, Sparkles, Clock, Star, ShoppingBag, Plus, Minus, Trash2, CheckCircle, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { useToast } from '@/hooks/use-toast';
 
-const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any) => void }) => {
+const HomeScreen = ({ onNavigateToBrowse, onNavigateToCreateListing }: { onNavigateToBrowse?: (filters: any) => void; onNavigateToCreateListing?: () => void }) => {
   const { user, cart, menuItems, restaurants, addToCart, updateQuantity, removeFromCart, transactionHistory } = useApp();
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -180,6 +180,17 @@ const HomeScreen = ({ onNavigateToBrowse }: { onNavigateToBrowse?: (filters: any
               <Button variant="outline" size="sm" onClick={handleBrowseDeals}>
                 Browse Deals
               </Button>
+              {user?.userType === 'seller' && onNavigateToCreateListing && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={onNavigateToCreateListing}
+                  className="bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+                >
+                  <Camera size={14} className="mr-1" />
+                  Sell Food
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
