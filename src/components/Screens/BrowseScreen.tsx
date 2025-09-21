@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
-import { mockMenuItems, mockRestaurants } from '@/data/mockData';
+import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
 import { MenuItem, Restaurant } from '@/types';
 
 const BrowseScreen = () => {
-  const { addToCart } = useApp();
+  const { addToCart, menuItems, restaurants } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMapView, setIsMapView] = useState(false);
   const [filters, setFilters] = useState({
@@ -20,8 +20,8 @@ const BrowseScreen = () => {
     deals: false
   });
 
-  const filteredItems = mockMenuItems.filter(item => {
-    const restaurant = mockRestaurants.find(r => r.id === item.restaurantId);
+  const filteredItems = menuItems.filter(item => {
+    const restaurant = restaurants.find(r => r.id === item.restaurantId);
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          restaurant?.name.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -29,7 +29,7 @@ const BrowseScreen = () => {
   });
 
   const handleAddToCart = (item: MenuItem) => {
-    const restaurant = mockRestaurants.find(r => r.id === item.restaurantId);
+    const restaurant = restaurants.find(r => r.id === item.restaurantId);
     if (restaurant) {
       addToCart({
         menuItem: item,
@@ -176,7 +176,8 @@ interface MenuItemCardProps {
 }
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, onAddToCart, urgent = false }) => {
-  const restaurant = mockRestaurants.find(r => r.id === item.restaurantId);
+  const { restaurants } = useApp();
+  const restaurant = restaurants.find(r => r.id === item.restaurantId);
 
   return (
     <Card className={`overflow-hidden ${urgent ? 'border-warning' : ''}`}>
@@ -225,20 +226,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, onAddToCart, urgent =
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-primary">
-                  ${item.discountedPrice}
-                </span>
-                <span className="text-sm text-muted-foreground line-through">
-                  ${item.originalPrice}
-                </span>
-                {item.timeLeft && (
-                  <div className="flex items-center text-xs text-warning">
-                    <Clock size={12} className="mr-1" />
-                    {item.timeLeft} left
-                  </div>
-                )}
-              </div>
+              <DynamicPriceDisplay item={item} size="sm" />
               
               <Button 
                 size="sm" 

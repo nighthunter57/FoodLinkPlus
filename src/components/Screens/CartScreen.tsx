@@ -1,16 +1,60 @@
-import React from 'react';
-import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Minus, Trash2, ShoppingBag, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
+import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
+import { useToast } from '@/hooks/use-toast';
 
 const CartScreen = () => {
-  const { cart, updateQuantity, removeFromCart, clearCart, user } = useApp();
+  const { cart, updateQuantity, removeFromCart, clearCart, user, processCheckout } = useApp();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+  const { toast } = useToast();
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.menuItem.discountedPrice * item.quantity), 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.menuItem.dynamicPricing.currentPrice * item.quantity), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
+
+  const handleCheckout = async () => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to complete your purchase.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    setCheckoutSuccess(false);
+
+    try {
+      const transaction = await processCheckout();
+      
+      setCheckoutSuccess(true);
+      toast({
+        title: "Order Successful! 🎉",
+        description: `Transaction ${transaction.id} completed. Prices have been updated based on demand!`,
+      });
+
+      // Reset success state after 3 seconds
+      setTimeout(() => {
+        setCheckoutSuccess(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "Checkout Failed",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -72,14 +116,7 @@ const CartScreen = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-primary">
-                          ${item.menuItem.discountedPrice}
-                        </span>
-                        <span className="text-sm text-muted-foreground line-through">
-                          ${item.menuItem.originalPrice}
-                        </span>
-                      </div>
+                      <DynamicPriceDisplay item={item.menuItem} size="sm" />
                       
                       <div className="flex items-center gap-2">
                         <Button
@@ -141,17 +178,24 @@ const CartScreen = () => {
         <Button 
           className="w-full bg-accent hover:bg-accent/90" 
           size="lg"
-          onClick={() => {
-            if (!user) {
-              // Show auth modal
-              console.log('Show auth modal');
-            } else {
-              // Proceed to checkout
-              console.log('Proceed to checkout');
-            }
-          }}
+          onClick={handleCheckout}
+          disabled={isProcessing || checkoutSuccess}
         >
-          {!user ? 'Sign In to Continue' : 'Proceed to Checkout'}
+          {isProcessing ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Processing...
+            </>
+          ) : checkoutSuccess ? (
+            <>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Order Complete!
+            </>
+          ) : !user ? (
+            'Sign In to Continue'
+          ) : (
+            'Proceed to Checkout'
+          )}
         </Button>
       </div>
     </div>

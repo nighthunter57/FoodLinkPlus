@@ -8,11 +8,12 @@ import { useApp } from '@/contexts/AppContext';
 const ProfileScreen = () => {
   const { user, signIn, signOut } = useApp();
 
-  const handleSignIn = () => {
+  const handleSignIn = (userType: 'customer' | 'seller' = 'customer') => {
     signIn({
-      name: 'Alex Johnson',
-      email: 'alex@example.com',
-      phone: '+1 (555) 123-4567'
+      name: userType === 'seller' ? 'Restaurant Manager' : 'Alex Johnson',
+      email: userType === 'seller' ? 'manager@restaurant.com' : 'alex@example.com',
+      phone: '+1 (555) 123-4567',
+      userType
     });
   };
 
@@ -32,9 +33,13 @@ const ProfileScreen = () => {
             </p>
             
             <div className="space-y-3">
-              <Button onClick={handleSignIn} className="w-full bg-accent hover:bg-accent/90">
+              <Button onClick={() => handleSignIn('customer')} className="w-full bg-accent hover:bg-accent/90">
                 <LogIn size={16} className="mr-2" />
-                Sign In
+                Sign In as Customer
+              </Button>
+              <Button onClick={() => handleSignIn('seller')} className="w-full bg-primary hover:bg-primary/90">
+                <LogIn size={16} className="mr-2" />
+                Sign In as Seller
               </Button>
               <Button variant="outline" className="w-full">
                 <UserPlus size={16} className="mr-2" />
@@ -75,10 +80,22 @@ const ProfileScreen = () => {
                 {user.phone && (
                   <p className="text-sm text-muted-foreground">{user.phone}</p>
                 )}
+                <Badge variant={user.userType === 'seller' ? 'default' : 'secondary'} className="mt-1">
+                  {user.userType === 'seller' ? 'Seller Account' : 'Customer Account'}
+                </Badge>
               </div>
-              <Button variant="outline" size="sm">
-                <Settings size={16} />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleSignIn(user.userType === 'customer' ? 'seller' : 'customer')}
+                >
+                  Switch to {user.userType === 'customer' ? 'Seller' : 'Customer'}
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Settings size={16} />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -154,7 +171,7 @@ const ProfileScreen = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-2 bg-secondary rounded-lg">
                 <img
-                  src="/public/images/bistro-food.jpg"
+                  src="/images/bistro-food.jpg"
                   alt="Mediterranean Bowl"
                   className="w-12 h-12 rounded-lg object-cover"
                 />
@@ -173,7 +190,7 @@ const ProfileScreen = () => {
 
               <div className="flex items-center gap-3 p-2 bg-secondary rounded-lg">
                 <img
-                  src="/public/images/kitchen-food.jpg"
+                  src="/images/kitchen-food.jpg"
                   alt="Classic Burger"
                   className="w-12 h-12 rounded-lg object-cover"
                 />
@@ -204,7 +221,7 @@ const ProfileScreen = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 bg-secondary rounded-lg">
                 <img
-                  src="/public/images/bistro-food.jpg"
+                  src="/images/bistro-food.jpg"
                   alt="Green Garden Bistro"
                   className="w-12 h-12 rounded-full mx-auto mb-2 object-cover"
                 />
@@ -214,7 +231,7 @@ const ProfileScreen = () => {
               
               <div className="text-center p-3 bg-secondary rounded-lg">
                 <img
-                  src="/public/images/bakery-food.jpg"
+                  src="/images/bakery-food.jpg"
                   alt="Artisan Bakery"
                   className="w-12 h-12 rounded-full mx-auto mb-2 object-cover"
                 />

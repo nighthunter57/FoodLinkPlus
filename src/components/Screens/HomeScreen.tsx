@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
-import { mockMenuItems, mockRestaurants } from '@/data/mockData';
+import { DynamicPriceDisplay } from '@/components/ui/DynamicPriceDisplay';
+import { PriceUpdateIndicator } from '@/components/ui/PriceUpdateIndicator';
+import { PriceChangeDemo } from '@/components/ui/PriceChangeDemo';
 
 const HomeScreen = () => {
-  const { user } = useApp();
+  const { user, menuItems, restaurants, lastPriceUpdate, refreshPrices } = useApp();
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
@@ -32,7 +34,7 @@ const HomeScreen = () => {
     }
   };
 
-  const hotDeals = mockMenuItems.filter(item => item.discountPercentage > 30).slice(0, 3);
+  const hotDeals = menuItems.filter(item => item.discountPercentage > 30).slice(0, 3);
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -59,6 +61,12 @@ const HomeScreen = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Price Update Indicator */}
+        <PriceUpdateIndicator 
+          lastUpdated={lastPriceUpdate} 
+          onRefresh={refreshPrices}
+        />
+
         {/* AI Chatbot Section */}
         <Card className="border-2 border-primary/20 shadow-sm">
           <CardContent className="p-4">
@@ -140,7 +148,7 @@ const HomeScreen = () => {
           
           <div className="space-y-3">
             {hotDeals.map((item) => {
-              const restaurant = mockRestaurants.find(r => r.id === item.restaurantId);
+              const restaurant = restaurants.find(r => r.id === item.restaurantId);
               return (
                 <Card key={item.id} className="overflow-hidden">
                   <CardContent className="p-3">
@@ -159,14 +167,7 @@ const HomeScreen = () => {
                         </div>
                         <p className="text-xs text-muted-foreground mb-1">{restaurant?.name}</p>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-primary">
-                              ${item.discountedPrice}
-                            </span>
-                            <span className="text-xs text-muted-foreground line-through">
-                              ${item.originalPrice}
-                            </span>
-                          </div>
+                          <DynamicPriceDisplay item={item} size="sm" />
                           <div className="flex items-center text-xs text-warning">
                             <Clock size={12} className="mr-1" />
                             {item.timeLeft}
@@ -181,6 +182,9 @@ const HomeScreen = () => {
           </div>
         </div>
 
+        {/* Dynamic Pricing Demo */}
+        <PriceChangeDemo />
+
         {/* Local Favorites */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -189,7 +193,7 @@ const HomeScreen = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-3">
-            {mockRestaurants.slice(0, 4).map((restaurant) => (
+            {restaurants.slice(0, 4).map((restaurant) => (
               <Card key={restaurant.id} className="overflow-hidden">
                 <CardContent className="p-0">
                   <img
